@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: '2.4.1'
+description: Garage is an open-source, lightweight, S3-compatible object storage for self-hosting, built by Deuxfleurs.
+home: https://garagehq.deuxfleurs.fr/
+maintainers:
+- name: abidals
+  url: https://github.com/abidals
+name: garage
+sources:
+- https://git.deuxfleurs.fr/Deuxfleurs/garage
+type: application
+version: 0.0.2

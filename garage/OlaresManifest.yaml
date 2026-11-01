@@ -1,0 +1,127 @@
+olaresManifest.version: '0.12.0'
+olaresManifest.type: app
+apiVersion: 'v3'
+
+workloadReplicas:
+  garage: 1
+
+metadata:
+  name: garage
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/garage.svg
+  description: Garage — an open-source, extremely light, S3-compatible object storage from Deuxfleurs.
+  appid: garage
+  title: Garage
+  version: '0.0.2'
+  categories:
+  - Developer Tools
+
+entrances:
+- name: s3
+  host: s3
+  port: 3900
+  title: Garage S3 API
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/garage.svg
+  authLevel: public
+  openMethod: window
+- name: admin
+  host: admin
+  port: 3903
+  title: Garage Admin (API)
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/garage.svg
+  authLevel: public
+  openMethod: window
+
+spec:
+  versionName: '2.4.1'
+  fullDescription: |
+    Garage is an open-source object storage service built by Deuxfleurs — an S3-compatible, extremely light and reliable store that you can self-host.
+
+    This app runs Garage **v2.4.1** in single-node mode (replication factor 1) using the official docker image. On first start it automatically creates your default S3 access key and bucket, so it is ready to use right after install.
+
+    ## Endpoints
+
+    | Entrance | URL (from Settings / app card) | Usage |
+    |---|---|---|
+    | Garage S3 API | https://…/ | S3 endpoint — path-style requests, e.g. `https://<s3-url>/<bucket>/<key>` |
+    | Garage Admin (API) | https://…/ | Admin API (v2), authorize with your admin token |
+
+    ## Using the S3 API (awscli)
+
+    ```
+    export AWS_ACCESS_KEY_ID=<your access key ID>
+    export AWS_SECRET_ACCESS_KEY=<your secret key>
+    export AWS_DEFAULT_REGION=garage
+    export AWS_ENDPOINT_URL=https://<s3-url of this app>/
+
+    aws s3 ls
+    aws s3 cp file.txt s3://<bucket>/file.txt
+    ```
+
+    Notes:
+    - Path-style only (no virtual-host buckets through the Olares gateway).
+    - Region is fixed to `garage` in this deployment.
+
+    ## Admin API
+
+    ```bash
+    curl -s -H "Authorization: Bearer <admin token>" \
+      https://<admin-url-of-this-app>/v2/GetClusterStatus | jq
+    ```
+
+    Useful calls: `/v2/GetClusterStatus`, `/v2/GetClusterStatistics`, `/v2/ListBuckets`,
+    `/v2/CreateKey`, `/v2/ImportKey`, `/v2/CreateBucket`.
+
+    Full reference: https://garagehq.deuxfleurs.fr/api/garage-admin-v2.html
+    Documentation: https://garagehq.deuxfleurs.fr/documentation/
+    Source: https://git.deuxfleurs.fr/Deuxfleurs/garage (GitHub mirror: https://github.com/deuxfleurs-org/garage)
+  upgradeDescription: |
+    v0.0.2: Adds submitter metadata (abidals), declares arm64 support (the
+    official image is multi-arch) and points sourceCode at the upstream
+    repository https://git.deuxfleurs.fr/Deuxfleurs/garage. No functional
+    changes — still Garage v2.4.1.
+    v0.0.1: Initial port of Garage v2.4.1 (official dxflrs/garage image), single-node mode, automatic default bucket, Admin API v2 entrance.
+  developer: Deuxfleurs
+  submitter: abidals
+  website: https://garagehq.deuxfleurs.fr/
+  sourceCode: https://git.deuxfleurs.fr/Deuxfleurs/garage
+  doc: https://garagehq.deuxfleurs.fr/documentation/
+  license:
+  - text: AGPL-3.0
+    url: https://github.com/deuxfleurs-org/garage?tab=AGPL-3.0-1-ov-file#readme
+  requiredMemory: 512Mi
+  requiredDisk: 1Gi
+  requiredCpu: 250m
+  limitedMemory: 2Gi
+  limitedCpu: "1"
+  supportArch:
+  - amd64
+  - arm64
+
+permission:
+  appData: true
+
+options:
+  apiTimeout: 0
+  dependencies:
+  - name: olares
+    type: system
+    version: '>=1.12.6-0'
+
+envs:
+- envName: GARAGE_DEFAULT_ACCESS_KEY
+  type: string
+  required: true
+  description: S3 access key ID for the default key — docs example "GK" + 32 hex chars, or your own ID.
+- envName: GARAGE_DEFAULT_SECRET_KEY
+  type: password
+  required: true
+  description: Matching S3 secret key (docs example 32 hex chars / openssl rand -hex 32).
+- envName: GARAGE_DEFAULT_BUCKET
+  type: string
+  required: true
+  default: garage
+  description: Bucket created automatically on first start (lowercase letters, digits, dashes).
+- envName: GARAGE_ADMIN_TOKEN
+  type: password
+  required: true
+  description: Bearer token for the Admin API (openssl rand -base64 32).
