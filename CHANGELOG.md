@@ -3,6 +3,16 @@
 Packaging-only changes; server features follow upstream
 https://git.deuxfleurs.fr/Deuxfleurs/garage.
 
+## 0.0.4 — 2026-11-20
+- Both entrances (S3 API :3900, Admin API :3903) now declare
+  `authLevel: internal` by default — endpoints are reachable only from apps on
+  the same Olares instance (e.g. Silo over the endpoint URL) and
+  LarePass-internal traffic, never from the open internet. Garage itself still
+  authenticates every request (S3 SigV4 / Admin bearer token). To expose the
+  S3 API to external S3 clients (awscli from a laptop, cross-instance
+  consumers), switch the entrance back to `public` in the app's settings —
+  no chart change needed.
+
 ## 0.0.3 — 2026-11-01
 - Server upgraded to Garage **v2.5.0** (official `dxflrs/garage` image). Upstream
   notes: a node upgraded to v2.5.0 cannot be downgraded; access to

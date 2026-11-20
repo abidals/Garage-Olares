@@ -14,3 +14,4 @@ https://garagehq.deuxfleurs.fr/security/
 - Single-node mode (replication factor 1) — there is no built-in redundancy; back up the app Data folder.
 - Anonymous S3 requests are rejected by design; clients must sign requests (SigV4).
 - Only path-style requests are supported through the Olares gateway (no virtual-host bucket addressing).
+- Both entrances default to `authLevel: internal` (reachable from same-instance apps and LarePass traffic only, Garage-native auth still in force). Treat the gateway URL as if it were load-bearing private infrastructure — switching an entrance to `public` is a deliberate action per consumer.

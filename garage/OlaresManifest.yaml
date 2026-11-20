@@ -11,7 +11,7 @@ metadata:
   description: Garage — an open-source, extremely light, S3-compatible object storage from Deuxfleurs.
   appid: garage
   title: Garage
-  version: '0.0.3'
+  version: '0.0.4'
   categories:
   - Developer Tools
 
@@ -21,14 +21,14 @@ entrances:
   port: 3900
   title: Garage S3 API
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/garage.svg
-  authLevel: public
+  authLevel: internal
   openMethod: window
 - name: admin
   host: admin
   port: 3903
   title: Garage Admin (API)
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/svg/garage.svg
-  authLevel: public
+  authLevel: internal
   openMethod: window
 
 spec:
@@ -60,6 +60,7 @@ spec:
     Notes:
     - Path-style only (no virtual-host buckets through the Olares gateway).
     - Region is fixed to `garage` in this deployment.
+    - Entrances are internal-only (authLevel internal): apps on this Olares instance (e.g. Silo) and LarePass traffic can reach the endpoints; Garage itself authenticates every request (SigV4 / Admin token). Externally-facing S3 requires switching the entrance back to public in the app settings.
 
     ## Admin API
 
@@ -75,6 +76,13 @@ spec:
     Documentation: https://garagehq.deuxfleurs.fr/documentation/
     Source: https://git.deuxfleurs.fr/Deuxfleurs/garage (GitHub mirror: https://github.com/deuxfleurs-org/garage)
   upgradeDescription: |
+    v0.0.4: Both entrances (S3 API, Admin API) now declare `authLevel: internal`
+    by default — the endpoints are reachable only from apps on the same Olares
+    instance (e.g. Silo connecting over the endpoint URL) and LarePass-internal
+    traffic, never from the open internet. Garage keeps enforcing its own
+    authentication (SigV4 / Admin bearer token) on every request. To expose
+    the S3 API to external S3 clients, switch the entrance back to public in
+    the app's settings (no chart change needed).
     v0.0.3: Upgrades the server to Garage v2.5.0 (official dxflrs/garage image).
     Upstream notes: after this upgrade the node cannot be downgraded back to
     older Garage versions (single-node instance upgrades as a whole; mixing

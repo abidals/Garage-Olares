@@ -9,4 +9,4 @@ name: garage
 sources:
 - https://git.deuxfleurs.fr/Deuxfleurs/garage
 type: application
-version: 0.0.3
+version: 0.0.4

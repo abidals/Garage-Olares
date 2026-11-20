@@ -8,8 +8,8 @@
 
 This repository hosts the Olares chart (packaging) only. It runs upstream Garage **v2.5.0** from the official `dxflrs/garage` image in **single-node** mode (replication factor 1):
 
-- **S3 API** exposed through a public Olares entrance (`:3900`, path-style, region `garage`)
-- **Admin API v2** entrance (`:3903`, `/v2/...` endpoints)
+- **S3 API** exposed through an Olares entrance (`:3900`, path-style, region `garage`) — **`authLevel: internal`**: reachable only from apps on the same Olares instance (e.g. Silo) and LarePass traffic, never from the open internet
+- **Admin API v2** entrance (`:3903`, `/v2/...` endpoints) — same internal level; Garage authenticates every request itself (SigV4 / bearer token)
 - On first start the cluster RPC secret is generated automatically and the default access key + bucket from your install form are created — usable right away
 - SQLite metadata and object data live in the app's Olares data folder
 
@@ -80,6 +80,7 @@ Notes:
 - Path-style only (no virtual-host buckets through the Olares gateway).
 - Region is fixed to `garage` in this deployment.
 - Anonymous requests are rejected by design; clients must sign with SigV4.
+- Since chart 0.0.4 both entrances default to `authLevel: internal` — the URLs work from apps on the same Olares instance and LarePass traffic, but **not** from external machines (an `aws s3 ls` from your laptop fails). For external CLI access switch the entrance to `public` in the app's settings (survives upgrades on Olares 1.12.7+) or run tools from within the instance.
 
 ## Admin API
 
