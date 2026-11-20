@@ -6,7 +6,7 @@
 
 **Garage** is an open-source, S3-compatible object storage service built by [Deuxfleurs](https://git.deuxfleurs.fr/Deuxfleurs/garage) — extremely light and reliable, designed for self-hosting — packaged here as a native **Olares** application.
 
-This repository hosts the Olares chart (packaging) only. It runs upstream Garage **v2.4.1** from the official `dxflrs/garage` image in **single-node** mode (replication factor 1):
+This repository hosts the Olares chart (packaging) only. It runs upstream Garage **v2.5.0** from the official `dxflrs/garage` image in **single-node** mode (replication factor 1):
 
 - **S3 API** exposed through a public Olares entrance (`:3900`, path-style, region `garage`)
 - **Admin API v2** entrance (`:3903`, `/v2/...` endpoints)
@@ -29,15 +29,15 @@ This repository hosts the Olares chart (packaging) only. It runs upstream Garage
 1. Grab the package straight from Releases:
 
    ```sh
-   curl -fsSLO https://github.com/abidals/Garage-Olares/releases/latest/download/garage-0.0.2.tgz
+   curl -fsSLO https://github.com/abidals/Garage-Olares/releases/latest/download/garage-0.0.3.tgz
    ```
 
-   (For this release: `garage-0.0.2.tgz`.)
+   (For this release: `garage-0.0.3.tgz`.)
 2. On your Olares:
 
    ```sh
-   olares-cli market upload garage-0.0.2.tgz
-   olares-cli market install garage -s upload --version 0.0.2 --watch
+   olares-cli market upload garage-0.0.3.tgz
+   olares-cli market install garage -s upload --version 0.0.3 --watch
    ```
 
    Omit `--version` to install the newest uploaded chart.
@@ -49,6 +49,7 @@ This repository hosts the Olares chart (packaging) only. It runs upstream Garage
    | `GARAGE_DEFAULT_SECRET_KEY` | Matching secret key — 32 hex chars (`openssl rand -hex 32`) |
    | `GARAGE_DEFAULT_BUCKET` | First bucket created automatically at start (default `garage`) |
    | `GARAGE_ADMIN_TOKEN` | Bearer token for the Admin API (`openssl rand -base64 32`) |
+   | `GARAGE_S3_PUBLIC_ENDPOINT` | *Optional* — the public HTTPS URL of the S3 entrance; rendered as Garage's `s3_api.public_endpoint`. Leave empty to skip. |
 
 4. Garage appears in **Market → My Apps** with two entrances: **Garage S3 API** and **Garage Admin (API)**.
 
@@ -94,10 +95,11 @@ Full reference: <https://garagehq.deuxfleurs.fr/api/garage-admin-v2.html>
 
 ## Pairing with Silo
 
-This chart was packaged as the S3 backend for [Silo for Olares](https://github.com/abidals/Silo-Olares) (media streaming server). In Silo:
+This chart was packaged as the S3 backend for [Silo for Olares](https://github.com/abidals/Silo-Olares) (media streaming server). In Silo (**Admin → Settings → Storage**), connect Garage to the **Internal / Private (operational) storage** — that's the recommended wiring; the Public section is optional:
 
-1. **Storage → Public Assets**: set the endpoint to the Garage **S3 API** entrance URL, with region `garage` and the access key / secret key from the install form.
-2. Pick a bucket (e.g. `silo-assets`) — create extra buckets first via the Admin API (`/v2/CreateBucket`) or `aws s3 mb`.
+1. **Internal (Private / operational) storage**: endpoint = the Garage **S3 API** entrance URL, region = `garage` (exact spelling — Silo defaults to `us-east-1` and Garage rejects the mismatched signature), bucket `silo-internal`, and a dedicated access key / secret key (create one named `silo` via the Admin API `/v2/CreateKey`, grant it read+write on the bucket with `/v2/AllowBucketKey`).
+2. Public assets only if you also want Garage to front them: same endpoint/keys with bucket `silo-assets`.
+3. Buckets are created automatically on first start from the install form, or anytime via the Admin API (`/v2/CreateBucket`).
 
 ## Updating
 
@@ -107,7 +109,7 @@ Upload a newer chart package, then:
 olares-cli market upgrade garage -s upload --version <version> --watch
 ```
 
-The `garage-config` Secret (access key, secret key, RPC secret) is kept across upgrades.
+The `garage-config` Secret (access key, secret key, RPC secret) is kept across upgrades. Note: once a data node is upgraded to Garage v2.5.0+ it cannot be downgraded back.
 
 ## Uninstalling
 
@@ -115,6 +117,7 @@ Market → My Apps → Garage → Uninstall. Uninstalling removes the app worklo
 
 ## Troubleshooting
 
+- **Silo (as of v0.1.7): "Connection check failed. Verify the submitted settings and provider availability."** — nine times out of ten this is a **region mismatch**: Silo's S3 client falls back to `us-east-1` when the region field is empty, while this deployment always signs with region `garage`. Set **Region = `garage`** in both storage sections and re-run the check. (Silo intentionally hides the provider's error text, so the failure looks generic.)
 - **403 "Garage does not support anonymous access yet" when opening the S3 URL in a browser** — that is normal: Garage only answers signed requests. Verify with `aws s3 ls` or the Admin API instead.
 - **Logs**: `olares-cli cluster pod logs -n <namespace> <pod> -c garage --follow`.
 - See the upstream docs: <https://garagehq.deuxfleurs.fr/documentation/>

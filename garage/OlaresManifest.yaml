@@ -11,7 +11,7 @@ metadata:
   description: Garage — an open-source, extremely light, S3-compatible object storage from Deuxfleurs.
   appid: garage
   title: Garage
-  version: '0.0.2'
+  version: '0.0.3'
   categories:
   - Developer Tools
 
@@ -32,11 +32,11 @@ entrances:
   openMethod: window
 
 spec:
-  versionName: '2.4.1'
+  versionName: '2.5.0'
   fullDescription: |
     Garage is an open-source object storage service built by Deuxfleurs — an S3-compatible, extremely light and reliable store that you can self-host.
 
-    This app runs Garage **v2.4.1** in single-node mode (replication factor 1) using the official docker image. On first start it automatically creates your default S3 access key and bucket, so it is ready to use right after install.
+    This app runs Garage **v2.5.0** in single-node mode (replication factor 1) using the official docker image. On first start it automatically creates your default S3 access key and bucket, so it is ready to use right after install.
 
     ## Endpoints
 
@@ -75,6 +75,14 @@ spec:
     Documentation: https://garagehq.deuxfleurs.fr/documentation/
     Source: https://git.deuxfleurs.fr/Deuxfleurs/garage (GitHub mirror: https://github.com/deuxfleurs-org/garage)
   upgradeDescription: |
+    v0.0.3: Upgrades the server to Garage v2.5.0 (official dxflrs/garage image).
+    Upstream notes: after this upgrade the node cannot be downgraded back to
+    older Garage versions (single-node instance upgrades as a whole; mixing
+    v2.x nodes in a cluster stays supported); access to
+    Put/Get/DeleteBucketLifecycle is now restricted to keys with owner
+    permission. Adds the optional GARAGE_S3_PUBLIC_ENDPOINT install field —
+    when set, it is rendered as the recommended s3_api.public_endpoint
+    parameter (the public HTTPS URL of the S3 entrance); leave empty to skip.
     v0.0.2: Adds submitter metadata (abidals), declares arm64 support (the
     official image is multi-arch) and points sourceCode at the upstream
     repository https://git.deuxfleurs.fr/Deuxfleurs/garage. No functional
@@ -125,3 +133,7 @@ envs:
   type: password
   required: true
   description: Bearer token for the Admin API (openssl rand -base64 32).
+- envName: GARAGE_S3_PUBLIC_ENDPOINT
+  type: string
+  required: false
+  description: Optional public HTTPS URL of the S3 entrance (e.g. https://<host>.my.<domain>) — rendered as the recommended s3_api.public_endpoint parameter. Leave empty to skip.
